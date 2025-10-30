@@ -739,7 +739,7 @@ for (const useIntermediateMergeReport of [true, false] as const) {
       await test.step('view via server', async () => {
         await showReport();
         await page.getByRole('link', { name: 'View Trace' }).click();
-        await expect(page.locator('dialog')).toBeHidden();
+        await expect(page.locator('#fallback-error')).toBeHidden();
       });
 
       await test.step('view via local file://', async () => {
@@ -747,7 +747,7 @@ for (const useIntermediateMergeReport of [true, false] as const) {
         await page.goto(url.pathToFileURL(path.join(reportFolder, 'index.html')).toString());
         await page.getByRole('link', { name: 'View Trace' }).click();
         await expect(page.locator('dialog')).toBeVisible();
-        await expect(page.locator('dialog')).toContainText('must be loaded over');
+        await expect(page.locator('#fallback-error')).toContainText('must be loaded over');
       });
     });
 
@@ -1494,7 +1494,7 @@ for (const useIntermediateMergeReport of [true, false] as const) {
       expect(output).toContain('html-report');
     });
 
-    test('it should only identify exact matches as clashing folders', async ({ runInlineTest, useIntermediateMergeReport }) => {
+    test('it should only identify exact matches as clashing folders', async ({ runInlineTest, useIntermediateMergeReport }, testInfo) => {
       test.skip(useIntermediateMergeReport);
       const result = await runInlineTest({
         'playwright.config.ts': `
@@ -1509,9 +1509,8 @@ for (const useIntermediateMergeReport of [true, false] as const) {
         `,
       });
       expect(result.exitCode).toBe(0);
-      const output = result.output;
-      expect(output).not.toContain('Configuration Error');
-      expect(output).toContain('test-results-html');
+      expect(result.output).not.toContain('Configuration Error');
+      expect(fs.existsSync(testInfo.outputPath('test-results-html'))).toBeTruthy();
     });
 
     test.describe('report location', () => {
